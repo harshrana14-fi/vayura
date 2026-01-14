@@ -48,7 +48,10 @@ export async function GET(request: Request) {
         const secretParam = searchParams.get('secret');
         const hasValidParam = secretParam === cronSecret;
 
-        if (!isVercelCron && !hasValidSecret && !hasValidParam) {
+        // Allow in development if no secret is set
+        const isDevelopment = process.env.NODE_ENV === 'development' || !cronSecret;
+
+        if (!isVercelCron && !hasValidSecret && !hasValidParam && !isDevelopment) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -171,7 +174,7 @@ export async function GET(request: Request) {
             const soilAdjustment = calculateSoilTreeAdjustment(avgSoil);
             const adjustedTreeSupply = BASE_TREE_O2_SUPPLY_KG_PER_YEAR * soilAdjustment;
             const o2Supply = data.totalTrees * adjustedTreeSupply;
-            
+
             const existingForestO2 = (data.existingForestTrees || 0) * adjustedTreeSupply;
 
             // Percent Met
@@ -224,7 +227,7 @@ export async function GET(request: Request) {
             // Only update if we have a valid reference ID from existing map
             // or if we decide to create new ones (logic below assumes update if exists)
             // If the document ID was just the state name, we can set properly.
-            
+
             // To be safe and robost:
             // If it exists in map, use that ID.
             // If not, we might skip like original code, OR we could create it.
@@ -243,7 +246,7 @@ export async function GET(request: Request) {
                     avgSoilQuality: entry.avgSoilQuality,
                     lastUpdated: new Date(),
                     // Update totals in case they changed from aggregation
-                    totalTrees: entry.totalTrees, 
+                    totalTrees: entry.totalTrees,
                     totalTreesPlanted: entry.totalTreesPlanted,
                     totalTreesDonated: entry.totalTreesDonated
                 });

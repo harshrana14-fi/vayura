@@ -17,10 +17,13 @@ export async function GET(request: Request) {
             .limit(limitParam)
             .get();
 
-        const leaderboard = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const leaderboard = snapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as any))
+            // Filter out invalid entries without state names
+            .filter((entry: any) => entry.state && entry.state.trim().length > 0);
 
         return NextResponse.json(leaderboard, {
             headers: {
